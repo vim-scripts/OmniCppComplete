@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 juin 2006
+" Last Change: 27 sept. 2007
 
 if v:version < 700
     echohl WarningMsg
@@ -20,7 +20,6 @@ let s:CACHE_TAG_POPUP_ITEMS = {}
 let s:CACHE_TAG_FILES = {}
 let s:CACHE_TAG_ENV = ''
 let s:CACHE_OVERLOADED_FUNCTIONS = {}
-call garbagecollect()
 
 " Has preview window?
 let s:hasPreviewWindow = match(&completeopt, 'preview')>=0
@@ -287,6 +286,10 @@ function! s:HasATagFileOrTagEnvChanged()
 
     let result = 0
     for tagFile in tagfiles()
+        if tagFile == ""
+            continue
+        endif
+
         if has_key(s:CACHE_TAG_FILES, tagFile)
             let currentFiletime = getftime(tagFile)
             if currentFiletime > s:CACHE_TAG_FILES[tagFile]
@@ -510,6 +513,7 @@ function! omni#cpp#complete#Main(findstart, base)
         endif
     else
         let typeInfo = omni#cpp#items#ResolveItemsTypeInfo(s:contextStack, g:omni#cpp#items#data)
+
         if typeInfo != {}
             if g:omni#cpp#items#data[-1].kind == 'itemScope'
                 " B) SCOPE_COMPLETION_MODE

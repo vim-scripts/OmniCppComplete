@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 let g:omni#cpp#includes#CACHE_INCLUDES = {}
 let g:omni#cpp#includes#CACHE_FILE_TIME = {}

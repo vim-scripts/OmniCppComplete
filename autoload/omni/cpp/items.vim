@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 " Build the item list of an instruction
 " An item is an instruction between a -> or . or ->* or .*
@@ -296,35 +296,47 @@ function! s:GetTypeInfoOfVariable(contextStack, szVariable, bSearchDecl)
         if tagItem=={}
             return result
         endif
-        if has_key(tagItem, 'typeref')
-            " Maybe the variable is a global var of an
-            " unnamed class, struct or union.
-            " eg:
-            " 1)
+
+        let szCmdWithoutVariable = substitute(omni#cpp#utils#ExtractCmdFromTagItem(tagItem), '\C\<'.a:szVariable.'\>.*', '', 'g')
+        let tokens = omni#cpp#tokenizer#Tokenize(omni#cpp#utils#GetCodeFromLine(szCmdWithoutVariable))
+        let result = omni#cpp#utils#CreateTypeInfo(omni#cpp#utils#ExtractTypeInfoFromTokens(tokens))
+        " TODO: Namespace resolution for result
+
+        if result != {} && result.value==''
+            " result.value==''
+            " eg: 
             " struct
             " {
             " }gVariable;
-            " In this case we need the tags (the patched version)
-            " Note: We can have a named type like this:
-            " 2)
-            " class A
-            " {
-            " }gVariable;
-            if s:IsUnnamedType(tagItem)
-                " It's an unnamed type we are in the case 1)
-                let result = omni#cpp#utils#CreateTypeInfo(tagItem)
-            else
-                " It's not an unnamed type we are in the case 2)
-                let result = omni#cpp#utils#CreateTypeInfo(substitute(tagItem.typeref, '\w\+:', '', 'g'))
+            if has_key(tagItem, 'typeref')
+                " Maybe the variable is a global var of an
+                " unnamed class, struct or union.
+                " eg:
+                " 1)
+                " struct
+                " {
+                " }gVariable;
+                " In this case we need the tags (the patched version)
+                " Note: We can have a named type like this:
+                " 2)
+                " class A
+                " {
+                " }gVariable;
+                if s:IsUnnamedType(tagItem)
+                    " It's an unnamed type we are in the case 1)
+                    let result = omni#cpp#utils#CreateTypeInfo(tagItem)
+                else
+                    " It's not an unnamed type we are in the case 2)
+
+                    " eg: tagItem.typeref = 'struct:MY_STRUCT::MY_SUBSTRUCT'
+                    let szTypeRef = substitute(tagItem.typeref, '^\w\+:', '', '')
+
+                    " eg: szTypeRef = 'MY_STRUCT::MY_SUBSTRUCT'
+                    let result = omni#cpp#utils#CreateTypeInfo(szTypeRef)
+                endif
             endif
-        else
-            let szCmdWithoutVariable = substitute(omni#cpp#utils#ExtractCmdFromTagItem(tagItem), '\C\<'.a:szVariable.'\>.*', '', 'g')
-            let tokens = omni#cpp#tokenizer#Tokenize(omni#cpp#utils#GetCodeFromLine(szCmdWithoutVariable))
-            let result = omni#cpp#utils#CreateTypeInfo(omni#cpp#utils#ExtractTypeInfoFromTokens(tokens))
-            " TODO: Namespace resolution for result
         endif
     endif
-
     return result
 endfunc
 
@@ -439,7 +451,7 @@ function! s:SearchTypeInfoOfDecl(szVariable)
     endwhile
 
     let result = {}
-    if searchdecl(a:szVariable, 0, 1)==0 && !omni#cpp#utils#IsCursorInCommentOrString()
+    if s:LocalSearchDecl(a:szVariable)==0 && !omni#cpp#utils#IsCursorInCommentOrString()
         let tokens = omni#cpp#utils#TokenizeCurrentInstruction()
         let szTypeInfo = s:ExtractTypeInfoFromDecl(tokens)
         if szTypeInfo != ''
@@ -459,12 +471,13 @@ endfunc
 function! s:SearchDecl(szVariable)
     let result = {}
     let originalPos = getpos('.')
-    let searchResult = searchdecl(a:szVariable, 0, 1)
+    let searchResult = s:LocalSearchDecl(a:szVariable)
     if searchResult==0
         " searchdecl() may detect a decl if the variable is in a conditional
         " instruction (if, elseif, while etc...)
         " We have to check if the detected decl is really a decl instruction
         let tokens = omni#cpp#utils#TokenizeCurrentInstruction()
+
         for token in tokens
             " Simple test
             if index(['if', 'elseif', 'while', 'for', 'switch'], token.value)>=0
@@ -561,4 +574,87 @@ function! s:ResolveCast(tokens, startChar, endChar)
     endfor
 
     return tokens[startIndex+1 : endIndex-1]
+endfunc
+
+" Replacement for build-in function 'searchdecl'
+" It does not require that the upper-level bracket is in the first column.
+" Otherwise it should be equal to 'searchdecl(name, 0, 1)'
+" @param name: name of variable to find declaration for
+function! s:LocalSearchDecl(name)
+
+    if g:OmniCpp_LocalSearchDecl == 0
+        let bUserIgnoreCase = &ignorecase
+
+        " Forcing the noignorecase option
+        " avoid bug when, for example, if we have a declaration like this : "A a;"
+        set noignorecase
+
+        let result = searchdecl(a:name, 0, 1)
+
+        " Restoring user's setting
+        let &ignorecase = bUserIgnoreCase
+
+        return result
+    endif
+
+    let lastpos = getpos('.')
+    let winview = winsaveview()
+    let lastfoldenable = &foldenable
+    let &foldenable = 0
+
+    " We add \C (noignorecase) to 
+    " avoid bug when, for example, if we have a declaration like this : "A a;"
+    let varname = "\\C\\<" . a:name . "\\>"
+
+    " Go to first blank line before begin of highest scope
+    normal 99[{
+    let scopepos = getpos('.')
+    while (line('.') > 1) && (len(split(getline('.'))) > 0)
+        call cursor(line('.')-1, 0)
+    endwhile
+
+    let declpos = [ 0, 0, 0, 0 ]
+    while search(varname, '', scopepos[1]) > 0
+        " Check if we are a string or a comment
+        if omni#cpp#utils#IsCursorInCommentOrString()
+            continue
+        endif
+
+        " Remember match
+        let declpos = getpos('.')
+    endwhile
+    if declpos[1] != 0
+        " We found a match
+        call winrestview(winview)
+        call setpos('.', declpos)
+        let &foldenable = lastfoldenable
+        return 0
+    endif
+
+    while search(varname, '', lastpos[1]) > 0
+        " Check if current scope is ending before variable
+        let old_cur = getpos('.')
+        normal ]}
+        let new_cur = getpos('.')
+        call setpos('.', old_cur)
+        if (new_cur[1] < lastpos[1]) || ((new_cur[1] == lastpos[1]) && (new_cur[2] < lastpos[2]))
+          continue
+        endif
+
+        " Check if we are a string or a comment
+        if omni#cpp#utils#IsCursorInCommentOrString()
+          continue
+        endif
+
+        " We found match
+        call winrestview(winview)
+        call setpos('.', old_cur)
+        let &foldenable = lastfoldenable
+        return 0
+    endwhile
+
+    " No match found.
+    call winrestview(winview)
+    let &foldenable = lastfoldenable
+    return 1
 endfunc

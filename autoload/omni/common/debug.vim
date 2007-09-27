@@ -1,6 +1,6 @@
 " Description: Omni completion debug functions
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 let s:CACHE_DEBUG_TRACE = []
 

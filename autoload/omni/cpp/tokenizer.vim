@@ -1,6 +1,6 @@
 " Description: Omni completion tokenizer
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 " TODO: Generic behaviour for Tokenize()
 
 " From the C++ BNF

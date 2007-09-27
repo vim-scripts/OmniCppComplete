@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 let g:omni#cpp#utils#CACHE_TAG_INHERITS = {}
 let g:omni#cpp#utils#szFilterGlobalScope = "(!has_key(v:val, 'class') && !has_key(v:val, 'struct') && !has_key(v:val, 'union') && !has_key(v:val, 'namespace')"

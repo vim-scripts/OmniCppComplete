@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 function! omni#cpp#settings#Init()
     " Global scope search on/off
@@ -76,12 +76,21 @@ function! omni#cpp#settings#Init()
         let g:OmniCpp_MayCompleteScope = 0
     endif
 
-    " When completeopt does not contain longest option, this setting allow to not
-    " select the first item
+    " When completeopt does not contain longest option, this setting 
+    " controls the behaviour of the popup menu selection when starting the completion
     "   0 = don't select first item
-    "   1 = select first item
+    "   1 = select first item (inserting it to the text)
+    "   2 = select first item (without inserting it to the text)
     "   default = 0
     if !exists('g:OmniCpp_SelectFirstItem') 
         let g:OmniCpp_SelectFirstItem= 0
+    endif
+
+    " Use local search function for variable definitions
+    "   0 = use standard vim search function
+    "   1 = use local search function
+    "   default = 0
+    if !exists('g:OmniCpp_LocalSearchDecl') 
+        let g:OmniCpp_LocalSearchDecl= 0
     endif
 endfunc

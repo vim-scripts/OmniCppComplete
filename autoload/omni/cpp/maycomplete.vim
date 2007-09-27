@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 " Check if we can use omni completion in the current buffer
 function! s:CanUseOmnicompletion()
@@ -11,12 +11,23 @@ endfunc
 " Return the mapping of omni completion
 function! omni#cpp#maycomplete#Complete()
     let szOmniMapping = "\<C-X>\<C-O>"
-    if !g:OmniCpp_SelectFirstItem
+
+    "   0 = don't select first item
+    "   1 = select first item (inserting it to the text, default vim behaviour)
+    "   2 = select first item (without inserting it to the text)
+    if g:OmniCpp_SelectFirstItem == 0
         " We have to force the menuone option to avoid confusion when there is
         " only one popup item
         set completeopt-=menu
         set completeopt+=menuone
         let szOmniMapping .= "\<C-P>"
+    elseif g:OmniCpp_SelectFirstItem == 2
+        " We have to force the menuone option to avoid confusion when there is
+        " only one popup item
+        set completeopt-=menu
+        set completeopt+=menuone
+        let szOmniMapping .= "\<C-P>"
+        let szOmniMapping .= "\<C-R>=pumvisible() ? \"\\<down>\" : \"\"\<cr>"
     endif
     return szOmniMapping
 endfunc

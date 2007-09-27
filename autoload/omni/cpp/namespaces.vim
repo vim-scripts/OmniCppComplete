@@ -1,6 +1,6 @@
 " Description: Omni completion script for cpp files
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 let g:omni#cpp#namespaces#CacheResolve = {}
 let g:omni#cpp#namespaces#CacheUsing = {}
@@ -181,7 +181,11 @@ endfunc
 " Get global using namespace map from the current buffer and include files recursively
 function! s:GetAllUsingNamespaceMapFromCurrentBuffer(...)
     let includeGuard = (a:0>0)? a:1 : {}
-    let szFilePath = omni#cpp#utils#ResolveFilePath(getreg('%'))
+
+    let szBufferName = getreg("%")
+    let szFilePath = omni#cpp#utils#ResolveFilePath(szBufferName)
+    let szFilePath = (szFilePath=='')? szBufferName : szFilePath
+
     let namespaceMap = {}
     if has_key(includeGuard, szFilePath)
         return namespaceMap
@@ -217,7 +221,9 @@ function! s:GetAllUsingNamespaceMapFromFile(szFilePath, ...)
     if a:0 >0
         let includeGuard = a:1
     endif
+
     let szFilePath = omni#cpp#utils#ResolveFilePath(a:szFilePath)
+    let szFilePath = (szFilePath=='')? a:szFilePath : szFilePath
 
     let namespaceMap = {}
     if has_key(includeGuard, szFilePath)
@@ -282,6 +288,8 @@ function! omni#cpp#namespaces#GetMapFromBuffer(szFilePath, ...)
     endif
 
     let szFilePath = omni#cpp#utils#ResolveFilePath(a:szFilePath)
+    let szFilePath = (szFilePath=='')? a:szFilePath : szFilePath
+
     if !bUpdate && has_key(g:omni#cpp#namespaces#CacheUsing, szFilePath)
         return copy(g:omni#cpp#namespaces#CacheUsing[szFilePath])
     endif
@@ -640,7 +648,7 @@ function! s:BuildContextStack(namespaces, szCurrentScope)
         if has_key(tagItem, 'inherits')
             let listBaseClass = omni#cpp#utils#GetClassInheritanceList(a:namespaces, omni#cpp#utils#CreateTypeInfo(a:szCurrentScope))
             let result = listBaseClass + result
-        elseif has_key(tagItem, 'kind') && index(['c', 's', 'u'], tagItem.kind[0])>=0
+        elseif has_key(tagItem, 'kind') && index(['c', 's', 'u', 'n'], tagItem.kind[0])>=0
             call insert(result, omni#cpp#utils#ExtractTypeInfoFromTag(tagItem))
         endif
     endif

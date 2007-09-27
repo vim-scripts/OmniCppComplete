@@ -1,6 +1,6 @@
 " Description: Omni completion utils
 " Maintainer:  Vissale NEANG
-" Last Change: 25 jun 2006
+" Last Change: 26 sept. 2007
 
 " For sort numbers in list
 function! omni#common#utils#CompareNumber(i1, i2)

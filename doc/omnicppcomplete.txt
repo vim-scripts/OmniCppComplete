@@ -1,11 +1,10 @@
-*omnicppcomplete.txt*   Last Change: 25 juin 2006       Omnicompletion for C++
-
-
+*omnicppcomplete.txt*	Plugin for C/C++ omnicompletion
 *omnicppcomplete*
 
 Author: Vissale NEANG (fromtonrouge AT gmail DOT com)
+Last Change: 26 sept. 2007       
 
-OmniCppComplete version 0.4
+OmniCppComplete version 0.41
 
 For Vim version 7.0 and above
 
@@ -17,13 +16,14 @@ For Vim version 7.0 and above
 4. Options                                      |omnicpp-options|
 5. Features                                     |omnicpp-features|
 6. Limitations                                  |omnicpp-limitations|
-7. History                                      |omnicpp-history|
-8. Thanks                                       |omnicpp-thanks|
+7. FAQ & TIPS                                   |omnicpp-faq|
+8. History                                      |omnicpp-history|
+9. Thanks                                       |omnicpp-thanks|
 
 ==============================================================================
 1. Overview~
                                                 *omnicpp-overview*
-The purpose of this script is to provide an 'omnifunc' function for the C++
+The purpose of this script is to provide an 'omnifunc' function for C and C++
 language. In a C++ file, while in insert mode, you can use CTRL-X CTRL-O to:
 
         * Complete namespaces, classes, structs and unions
@@ -55,7 +55,7 @@ You can download |Exuberant_ctags| from :
 
 Unzip the downloaded file in your personal |vimfiles| directory (~/.vim under 
 unix or %HOMEPATH%\vimfiles under windows). The 'omnifunc' will be 
-automatically set for C++ files.
+automatically set for C and C++ files.
 
 You also have to enable plugins by adding these two lines in your|.vimrc|file: >
 
@@ -69,6 +69,7 @@ Please see |cp| and |filetype-plugin-on| sections for more details.
 After installation you should find these files :
 
     after\ftplugin\cpp.vim
+    after\ftplugin\c.vim
 
     autoload\omni\common\debug.vim
                         \utils.vim
@@ -86,13 +87,13 @@ After installation you should find these files :
 
 3.2. Building the Exuberant Ctags database~
 
-To extract C++ symbols informations, the script needs an |Exuberant_ctags|
+To extract C/C++ symbols information, the script needs an |Exuberant_ctags|
 database.
 
 You have to build your database with at least the following options:
-        --c++-kinds=+p  : Adds prototypes in the database for C++ files.
+        --c++-kinds=+p  : Adds prototypes in the database for C/C++ files.
         --fields=+iaS   : Adds inheritance (i), access (a) and function 
-                          signatures (S) informations.
+                          signatures (S) information.
         --extra=+q      : Adds context to the tag name. Note: Without this
                           option, the script cannot get class members.
 
@@ -348,11 +349,24 @@ OmniCpp_SelectFirstItem option.
 
 Possible values are:
         0 = don't select first popup item
-        1 = select first popup item
+        1 = select first popup item (inserting it to the text)
+        2 = select first popup item (without inserting it to the text)
         [default=0] >
         
         let OmniCpp_SelectFirstItem = 0
 
+4.10 Use local search function for variable definitions~
+                                        *OmniCpp_LocalSearchDecl*
+
+The internal search function for variable definitions of vim requires that the
+enclosing braces of the function are located in the first column. You can
+change this behaviour with the OmniCpp_LocalSearchDecl option. The local
+version works irrespective the position of braces.
+
+Possible values are:
+        0 = use standard vim search function
+        1 = use local search function
+        [default=0] >
 
 ==============================================================================
 5. Features~
@@ -701,10 +715,10 @@ eg: >
 
 If the 'completeopt' option contains the setting "preview" (this is the 
 default value), you will see a preview window during the completion.
-This window shows useful informations like function signature, filename where
+This window shows useful information like function signature, filename where
 the symbol is define etc...
 
-The preview window contains tag informations, the list below is non exhaustive.
+The preview window contains tag information, the list below is non exhaustive.
 
         * name : name of the tag
         * cmd : regexp or line number that helps to find the tag 
@@ -732,7 +746,7 @@ eg: this case is unrealistic but it's just for illustration >
                                                 *omnicpp-limitations*
 Some C++ features are not supported by the script, some implemented features
 may not work properly in some conditions. They are multiple reasons like a
-lack of informations in the database, performance issues and so on...
+lack of information in the database, performance issues and so on...
 
 6.1. Attribute members and returned type completion~
 
@@ -787,19 +801,19 @@ The correct case should be : >
 
 6.2. Static members~
 
-It's the same problem as above, tags database does not contain informations
+It's the same problem as above, tags database does not contain information
 about static members. The only fast way to get this information is to use the
 cmd.
 
 6.3. Typedef~
 
-It's the same problem as above, tags database does not contain informations
+It's the same problem as above, tags database does not contain information
 about the type of a typedef. The script use the cmd information to resolve the
 typedef.
 
 6.4. Restricted inheritance access~
 
-Tags database contains inheritance informations but unfortunately inheritance 
+Tags database contains inheritance information but unfortunately inheritance 
 access are not available. We could use the cmd but we often find code
 indentation like this : >
         
@@ -824,16 +838,68 @@ issues only using namespace that starts a line will be detected.
 
 6.6. Friend classes~
 
-Tags database does not contain informations about friend classes. The script
+Tags database does not contain information about friend classes. The script
 does not support friend classes.
 
 6.7. Templates~
 
-At the moment, |Exuberant_ctags| does not provide additional informations for
+At the moment, |Exuberant_ctags| does not provide additional information for
 templates. That's why the script does not handle templates.
 
 ==============================================================================
-7. History~
+7. FAQ & TIPS~
+                                                                 *omnicpp-faq*
+
+* How to complete STL objects ?
+    If you have some troubles to generate a good ctags database for STL you
+    can try this solution :
+
+    1)  Download SGI's STL from SGI's site
+        (http://www.sgi.com/tech/stl/download.html)
+    2)  Replace all __STL_BEGIN_NAMESPACE by "namespace std {" and
+        __STL_END_NAMESPACE by "}" from header and source files. (with Vim,
+        or with tar and sed or another tool)
+    3)  Run ctags and put the generated tags file in a directory eg:
+        ~/MyTags/stl.tags
+    4)  set tags+=~/MyTags/stl.tags
+
+    The main problem is that you can't tell to ctags that
+    __STL_BEGIN_NAMESPACE = "namespace std {" even with the option -I.
+    That's why you need the step 2).
+
+    Here is another solution if you have STL sources using _GLIBCXX_STD macro
+    (Tip by Nicola Bonelli) : >
+
+        let OmniCpp_DefaultNamespaces   = ["std", "_GLIBCXX_STD"]
+<
+* How to close automatically the preview window after a completion ?
+  (Tip by Kamil Renczewski)
+
+    You can add to your |vimrc| the following lines : >
+ 
+        autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+        autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+<
+==============================================================================
+8. History~
+                                                             *omnicpp-history*
+Version O.41
+    -   It's recommended to update ctags to version 5.7 or higher
+    -   The plugin is now activated for C files
+    -   New value for OmniCpp_SelectFirstItem when the option is equal to
+        2 the first item is selected without inserting it to 
+        the text (patch from Marek Olszewski)
+    -   Bug when completing union members fixed with ctags 5.7 
+        (reported by Willem-Jan de Hoog) 
+    -   New option OmniCpp_LocalSearchDecl (patch from Roland Kuck)
+    -   Bug when tags=something,,somethingelse (reported by Tobias Pflug)
+    -   Bug with nested structure (reported by Mikhail Daen)
+    -   Bug where the script fails to detect the type of a variable when 
+        the ignorecase option is on (reported by Alexey Vakhov)
+    -   Error message when trying to use completion on a not yet saved 
+        Vim buffer (reported by Neil Bird)
+    -   Error message when trying to use completion on an file opened from 
+        a tselect command (reported by Henrique Andrade)
 
 Version 0.4
    -   The script is renamed to OmniCppComplete according to the library
@@ -903,7 +969,7 @@ Version 0.3
        included files.
    -   Fixed a bug where the completion fails in some cases when the user
        sets the ignorecase to on
-   -   Preview window informations added
+   -   Preview window information added
    -   Some improvements in type detection, the type can be properly detected
        with a declaration like this:
        'Class1 *class1A = NULL, **class1B = NULL, class1C[9], class1D[1] = {};'
@@ -978,13 +1044,26 @@ Version 0.1:
    -   First release
 
 ==============================================================================
-8. Thanks~
-        * For help, documentation, bug report :
+9. Thanks~
+                                                              *omnicpp-thanks*
+        * For advices, bug report, documentation, help, ideas :
+                Alexey Vakhov                   (bug report)
                 Arthur Axel "fREW" Schmidt      (documentation)
-                Dennis Lubert                   (bugs)
-                Markus Trenkwalder              (bugs)
-                Martin Stubenschrott            (bugs)
-                Robert Webb                     (bugs)
+                Dennis Lubert                   (bug report)
+                Henrique Andrade                (bug report) 
+                Kamil Renczewski                (tips)
+                Marek Olszewski                 (patch)
+                Markus Trenkwalder              (bug report)
+                Martin Stubenschrott            (bug report)
+                Mikhail Daen                    (bug report) 
+                Neil Bird                       (bug report) 
+                Nicola Bonelli                  (tips)
+                Robert Webb                     (bug report)
+                Roland Kuck                     (patch) 
+                Tobias Pflug                    (bug report) 
+                Willem-Jan de Hoog              (bug report)
+                Yegappan Lakshmanan             (advices)
+                
             
         * Darren Hiebert for Exuberant Ctags
 
