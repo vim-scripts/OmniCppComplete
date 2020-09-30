@@ -4,7 +4,7 @@ This script is for vim 7.0 or higher it provides an omnifunc cppcomplete functio
 You can use the omni completion (intellisense) in C and C++ files.
 This is a full vim script and you only need a ctags database.
 
-It's not finished yet but now you can :
+It's not finished yet but now you can do the following things:
 
     -   Complete namespaces, classes, structs and union members.
     -   Complete inherited members for classes and structs (single and multiple inheritance).
