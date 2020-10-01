@@ -31,6 +31,7 @@ function! omni#cpp#maycomplete#Complete()
     endif
     return szOmniMapping
 endfunc
+"function ends
 
 " May complete function for dot
 function! omni#cpp#maycomplete#Dot()
@@ -41,6 +42,7 @@ function! omni#cpp#maycomplete#Dot()
             return '.' . omni#cpp#maycomplete#Complete()
         endif
     endif
+"function ends    
     return '.'
 endfunc
 " May complete function for arrow
@@ -60,8 +62,9 @@ function! omni#cpp#maycomplete#Arrow()
     endif
     return '>'
 endfunc
+"function ends
 
-" May complete function for double points
+" May complete function for double point
 function! omni#cpp#maycomplete#Scope()
     if s:CanUseOmnicompletion() && g:OmniCpp_MayCompleteScope
         let index = col('.') - 2
@@ -78,5 +81,6 @@ function! omni#cpp#maycomplete#Scope()
             endif
         endif
     endif
+"function ends    
     return ':'
 endfunc
