@@ -3,6 +3,8 @@ This is a mirror of http://www.vim.org/scripts/script.php?script_id=1520
 This script is for vim 7.0 or higher it provides an omnifunc cppcomplete function.
 You can use the omni completion (intellisense) in C and C++ files.
 This is a full vim script and you only need a ctags database.
+Vim script is scripting language built on Vim.
+Based on ex editor early versions of Vim added commands for control flow and function definitions.
 
 It's not finished yet but now you can :
 
